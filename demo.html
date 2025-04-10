@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Demo</title>
+    <style>
+        /* Reset some default styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-image: url('1.jpg'); /* 替换成你想要的背景图片URL */
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        #container {
+            background-color: rgba(255, 255, 255, 0.8); /* 将不透明度从 0.95 降低到 0.8 */
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            width: 95%;  /* 增加到95%的浏览器宽度 */
+            max-width: 1400px;  /* 增加最大宽度 */
+            height: 90%;  /* 增加到90%的浏览器高度 */
+            max-height: 900px;  /* 增加最大高度 */
+            padding: 25px;
+            display: flex;
+            flex-direction: row;
+        }
+
+        /* Messages section */
+        #messages {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            margin-right: 20px; /* 增加与成员列表的间距 */
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 10px;
+            height: calc(100% - 80px);
+            overflow-y: scroll;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+            flex-grow: 1;
+            width: 100%;
+        }
+
+        li {
+            margin-bottom: 10px;
+            font-size: 14px;
+            line-height: 1.5;
+            border: 1px solid rgba(221, 221, 221, 0.5);
+            border-radius: 5px;
+            padding: 10px;
+            background-color: rgba(249, 249, 249, 0.7); /* 将消息背景设置为半透明 */
+            word-break: break-all;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            width: 100%;
+            display: flex; /* 改为flex布局 */
+        }
+
+        li span {
+            color: #ff6347; /* Red color for usernames */
+            font-weight: bold;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            padding: 15px 0;
+            background-color: rgba(255, 255, 255, 0.7); /* 将控制区域背景设置为半透明 */
+            border-top: 1px solid rgba(238, 238, 238, 0.5);
+        }
+
+        .message-input {
+            flex: 1;
+            padding: 12px 20px;
+            font-size: 15px;
+            border: 2px solid rgba(221, 221, 221, 0.5);
+            border-radius: 25px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            background-color: rgba(255, 255, 255, 0.9); /* 输入框保持较高不透明度以保证可读性 */
+        }
+
+        .message-input:focus {
+            outline: none;
+            border-color: #ff6347;
+            box-shadow: 0 2px 8px rgba(255, 99, 71, 0.2);
+        }
+
+        .send-button {
+            padding: 12px 30px;
+            font-size: 15px;
+            font-weight: bold;
+            background-color: #ff6347;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 100px;
+        }
+
+        .send-button:hover {
+            background-color: #ff4125;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(255, 99, 71, 0.3);
+        }
+
+        .system-message {
+            font-style: italic;
+            color: #888;
+        }
+
+        #members {
+            width: 250px; /* 增加成员列表宽度 */
+            padding: 20px;
+            border-left: 1px solid rgba(221, 221, 221, 0.3);
+            max-height: 100%;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background-color: rgba(255, 255, 255, 0.6); /* 降低成员列表的背景不透明度 */
+            border-radius: 8px;
+        }
+
+        .member {
+            font-size: 14px;
+            font-weight: bold;
+            color: #ff6347;
+            border: 1px solid rgba(221, 221, 221, 0.5);
+            border-radius: 5px;
+            padding: 5px;
+            background-color: rgba(249, 249, 249, 0.7); /* 将成员背景设置为半透明 */
+        }
+
+        /* 添加消息内容的样式 */
+        li > div {
+            width: 100%;
+            overflow-wrap: break-word;
+            word-wrap: break-word;
+            word-break: break-all;
+            hyphens: auto;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(5px); /* 添加毛玻璃效果 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal {
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 35px;
+            border-radius: 12px;
+            width: 350px;
+            text-align: center;
+        }
+
+        .modal input {
+            width: 100%;
+            padding: 10px;
+            margin: 15px 0;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .modal button {
+            padding: 10px 20px;
+            background-color: #ff6347;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .modal button:hover {
+            background-color: #ff4125;
+        }
+
+        /* 美化滚动条 */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 99, 71, 0.5);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 99, 71, 0.7);
+        }
+
+        /* 添加头像相关的样式 */
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            font-size: 16px;
+        }
+
+        /* 修改消息列表项样式以适应头像 */
+        li {
+            margin-bottom: 10px;
+            font-size: 14px;
+            line-height: 1.5;
+            border: 1px solid rgba(221, 221, 221, 0.5);
+            border-radius: 5px;
+            padding: 10px;
+            background-color: rgba(249, 249, 249, 0.7);
+            word-break: break-all;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            width: 100%;
+            display: flex; /* 改为flex布局 */
+        }
+
+        .message-content {
+            flex: 1;
+        }
+
+        /* 系统消息特殊样式 */
+        .system-message .message-avatar {
+            background-color: #888 !important;
+        }
+    </style>
+</head>
+<body>
+<div id="container">
+    <div id="messages">
+        <ul>
+            <li v-for="msg in messages" :class="{'system-message': msg.name === 'system'}">
+                <div class="message-avatar" :style="getAvatarStyle(msg.name)">
+                    {{getAvatarText(msg.name)}}
+                </div>
+                <div class="message-content">
+                    <div><strong>{{ msg.timestamp }}</strong></div>
+                    <div>[<span>{{msg.name}}</span>] {{msg.content}}</div>
+                </div>
+            </li>
+        </ul>
+        <div class="controls">
+            <input type="text" 
+                   v-model="inputMessage" 
+                   placeholder="请输入消息..." 
+                   class="message-input"
+                   @keyup.enter="sendMessage">
+            <input type="button" 
+                   v-on:click="sendMessage" 
+                   value="发送" 
+                   class="send-button">
+        </div>
+    </div>
+    <div id="members">
+        <h3>在线用户列表</h3>
+        <div v-for="member in onlineMembers" class="member">{{ member }}</div>
+    </div>
+    
+    <!-- 将模态框移到 container 内部 -->
+    <div class="modal-overlay" v-if="showModal">
+        <div class="modal">
+            <h3>请输入您的昵称</h3>
+            <input type="text" 
+                   v-model="tempNickname" 
+                   placeholder="请输入昵称..."
+                   @keyup.enter="confirmNickname">
+            <button @click="confirmNickname">确定</button>
+        </div>
+    </div>
+</div>
+
+<script src="http://cdnjs.cloudflare.com/ajax/libs/vue/1.0.26/vue.min.js" type="text/javascript"></script>
+<script src="protocol.js" type="text/javascript"></script>
+<script src="starx-wsclient.js" type="text/javascript"></script>
+<script>
+    var app = new Vue({
+        el: "#container",
+        data: {
+            nickname: '',
+            inputMessage: '',
+            messages: [],
+            onlineMembers: [],
+            showModal: true,
+            tempNickname: ''
+        },
+        created() {
+            // 在 Vue 实例创建时就绑定事件监听器
+            const vm = this;
+            
+            starx.on("onMessage", (msg) => {
+                vm.messages.push(msg);
+            });
+
+            starx.on("onNewUser", (data) => {
+                vm.messages.push({name: '系统', content: data.content});
+            });
+
+            starx.on("onMembers", (data) => {
+                // vm.messages.push({
+                //     name: '系统', 
+                //     content: "当前在线人数: " + (Array.isArray(data.members) ? data.members.length + 1 : 1)
+                // });
+                vm.onlineMembers = data.members;
+            });
+
+            starx.on("onUserLeft", (data) => {
+                vm.messages.push({name: '系统', content: data.content});
+            });
+
+            starx.on("onUpdateList", (data) => {
+                vm.onlineMembers = data.membersnickname;
+            });
+
+            starx.on("initMessage", (msg) => {
+                console.log("initmessage")
+                console.log(msg.allMessage)
+                if (msg && msg.allMessage) {
+                    vm.messages = msg.allMessage;
+                }
+            });
+        },
+        methods: {
+            sendMessage: function () {
+                if (this.inputMessage.trim() === '') return;
+                const currentTime = new Date().toLocaleTimeString();
+                starx.notify('room.message', {name: this.nickname, content: this.inputMessage});
+                this.inputMessage = '';
+            },
+            confirmNickname: function () {
+                if (this.tempNickname.trim() === '') {
+                    alert('昵称不能为空！');
+                    return;
+                }
+                this.nickname = this.tempNickname;
+                this.showModal = false;
+                
+                // 只在确认昵称后初始化连接
+                starx.init({host: '127.0.0.1', port: 3250, path: '/nano'}, () => {
+                    console.log("initialized");
+                    starx.request("room.join", {nickname: this.nickname}, (data) => {
+                        if (data.code === 0) {
+                            console.log("Successfully joined the room");
+                        }
+                    });
+                });
+            },
+            // 根据用户名生成头像背景颜色
+            getAvatarStyle(name) {
+                if (name === 'system') {
+                    return {
+                        backgroundColor: '#888'
+                    };
+                }
+                // 根据用户名生成一个固定的颜色
+                let hash = 0;
+                for (let i = 0; i < name.length; i++) {
+                    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+                }
+                const hue = hash % 360;
+                return {
+                    backgroundColor: `hsl(${hue}, 70%, 50%)`
+                };
+            },
+            // 获取头像显示的文字（用户名首字母）
+            getAvatarText(name) {
+                if (name === 'system') {
+                    return 'S';
+                }
+                return name.charAt(0).toUpperCase();
+            }
+        }
+    });
+</script>
+</body>
+</html>
