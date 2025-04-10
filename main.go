@@ -194,7 +194,7 @@ func (mgr *RoomManager) Message(s *session.Session, msg *UserMessage) error {
 
 func InsertMessage(msg *UserMessage) {
 	// 打开 MySQL 数据库连接
-	db, err := sql.Open("mysql", "blog:hgj1097229155@tcp(106.14.75.103:3306)/blog?charset=utf8")
+	db, err := sql.Open("mysql", "username:password@tcp(ip:3306)/databasename?charset=utf8")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -218,7 +218,7 @@ func InsertMessage(msg *UserMessage) {
 
 func GetAllMessages() ([]UserMessage, error) {
 	// 打开数据库连接
-	db, err := sql.Open("mysql", "blog:hgj1097229155@tcp(106.14.75.103:3306)/blog?charset=utf8")
+	db, err := sql.Open("mysql", "username:password@tcp(ip:3306)/databasename?charset=utf8")
 	if err != nil {
 		return nil, err
 	}
